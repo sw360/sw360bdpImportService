@@ -54,6 +54,7 @@
     <modules>
         <module>src-bdpimport</module>
         <module>svc-bdpimport</module>
+        <module>bdp-access-proxy</module>
     </modules>
 
     <dependencyManagement>
