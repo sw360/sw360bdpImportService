@@ -10,7 +10,7 @@
 package com.bosch.osmi.sw360.bdp.service;
 
 import com.bosch.osmi.sw360.bdp.datasource.Assertions;
-import com.siemens.sw360.datahandler.thrift.projects.Project;
+import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Ignore;

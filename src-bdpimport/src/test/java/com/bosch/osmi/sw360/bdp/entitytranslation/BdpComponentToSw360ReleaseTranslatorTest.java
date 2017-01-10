@@ -10,7 +10,7 @@
 package com.bosch.osmi.sw360.bdp.entitytranslation;
 
 import com.bosch.osmi.bdp.access.api.model.License;
-import com.siemens.sw360.datahandler.thrift.components.Release;
+import org.eclipse.sw360.datahandler.thrift.components.Release;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,8 +19,8 @@ import static org.junit.Assert.assertThat;
 
 public class BdpComponentToSw360ReleaseTranslatorTest {
 
-	private com.siemens.sw360.datahandler.thrift.components.Component component;
-	private com.siemens.sw360.datahandler.thrift.components.Release release;
+	private org.eclipse.sw360.datahandler.thrift.components.Component component;
+	private org.eclipse.sw360.datahandler.thrift.components.Release release;
 
 	private com.bosch.osmi.bdp.access.api.model.Component componentBdp;
 

@@ -15,13 +15,13 @@ import com.bosch.osmi.sw360.bdp.entitytranslation.BdpComponentToSw360ComponentTr
 import com.bosch.osmi.sw360.bdp.entitytranslation.BdpComponentToSw360ReleaseTranslator;
 import com.bosch.osmi.sw360.bdp.entitytranslation.BdpLicenseToSw360LicenseTranslator;
 import com.bosch.osmi.sw360.bdp.entitytranslation.BdpProjectInfoToSw360ProjectTranslator;
-import com.siemens.sw360.datahandler.thrift.RequestStatus;
-import com.siemens.sw360.datahandler.thrift.components.Component;
-import com.siemens.sw360.datahandler.thrift.components.Release;
-import com.siemens.sw360.datahandler.thrift.licenses.License;
-import com.siemens.sw360.datahandler.thrift.projects.Project;
-import com.siemens.sw360.datahandler.thrift.users.User;
-import com.siemens.sw360.datahandler.thrift.importstatus.ImportStatus;
+import org.eclipse.sw360.datahandler.thrift.RequestStatus;
+import org.eclipse.sw360.datahandler.thrift.components.Component;
+import org.eclipse.sw360.datahandler.thrift.components.Release;
+import org.eclipse.sw360.datahandler.thrift.licenses.License;
+import org.eclipse.sw360.datahandler.thrift.projects.Project;
+import org.eclipse.sw360.datahandler.thrift.users.User;
+import org.eclipse.sw360.datahandler.thrift.importstatus.ImportStatus;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
