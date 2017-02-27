@@ -23,10 +23,6 @@
     <packaging>jar</packaging>
     <name>src-bdpimport</name>
 
-    <properties>
-        <blackduck.protex.version>7.0.2</blackduck.protex.version>
-    </properties>
-
     <dependencies>
 <!--     own api definitions to get elements form data model of black duck bdp -->
         <dependency>

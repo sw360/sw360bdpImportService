@@ -22,7 +22,7 @@
     <version>1.6.0-SNAPSHOT</version>
 
     <properties>
-        <blackduck.protex.version>7.0.2</blackduck.protex.version>
+        <blackduck.protex.version>7.3.0</blackduck.protex.version>
     </properties>
 
     <dependencies>
