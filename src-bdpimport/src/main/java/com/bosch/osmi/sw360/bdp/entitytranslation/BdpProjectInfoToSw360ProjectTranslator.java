@@ -10,7 +10,7 @@
 package com.bosch.osmi.sw360.bdp.entitytranslation;
 
 import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
-import com.siemens.sw360.datahandler.thrift.projects.Project;
+import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import java.util.HashMap;
 
 public class BdpProjectInfoToSw360ProjectTranslator implements EntityTranslator<ProjectInfo, Project> {

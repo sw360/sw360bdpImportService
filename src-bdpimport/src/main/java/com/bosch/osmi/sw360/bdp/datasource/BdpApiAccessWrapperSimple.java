@@ -13,7 +13,7 @@ import com.bosch.osmi.bdp.access.api.BdpApiAccess;
 import com.bosch.osmi.bdp.access.api.model.*;
 import com.bosch.osmi.bdp.access.impl.BdpApiAccessImpl;
 import com.bosch.osmi.bdp.access.mock.BdpApiAccessMockImpl;
-import com.siemens.sw360.datahandler.thrift.bdpimport.RemoteCredentials;
+import org.eclipse.sw360.datahandler.thrift.bdpimport.RemoteCredentials;
 import org.apache.log4j.Logger;
 
 import java.util.Collection;

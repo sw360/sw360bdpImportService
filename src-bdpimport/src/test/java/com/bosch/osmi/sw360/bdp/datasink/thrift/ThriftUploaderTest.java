@@ -12,8 +12,8 @@ package com.bosch.osmi.sw360.bdp.datasink.thrift;
 import com.bosch.osmi.bdp.access.api.model.License;
 import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
 import com.bosch.osmi.sw360.bdp.datasource.BdpApiAccessWrapper;
-import com.siemens.sw360.datahandler.thrift.projects.Project;
-import com.siemens.sw360.datahandler.thrift.users.User;
+import org.eclipse.sw360.datahandler.thrift.projects.Project;
+import org.eclipse.sw360.datahandler.thrift.users.User;
 import org.apache.thrift.TException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -92,14 +92,14 @@ public class ThriftUploaderTest {
     public void testGetOrCreateLicenceIdCreatesNewLicense() {
         License license = createLicense();
         when(exchange.searchLicenseByBdpId(anyString())).thenReturn(Optional.empty());
-        when(exchange.addLicense(any(com.siemens.sw360.datahandler.thrift.licenses.License.class), any(User.class))).thenReturn("newId");
+        when(exchange.addLicense(any(org.eclipse.sw360.datahandler.thrift.licenses.License.class), any(User.class))).thenReturn("newId");
         assertThat(thriftUploader.getOrCreateLicenseId(license, user), is("newId"));
     }
 
     @Test
     public void testGetOrCreateLicenceIdFindsDuplicatesByBdpId() {
         License license = createLicense();
-        com.siemens.sw360.datahandler.thrift.licenses.License existingLicense = new com.siemens.sw360.datahandler.thrift.licenses.License().setId("42");
+        org.eclipse.sw360.datahandler.thrift.licenses.License existingLicense = new org.eclipse.sw360.datahandler.thrift.licenses.License().setId("42");
         when(exchange.searchLicenseByBdpId(anyString())).thenReturn(Optional.of(Collections.singletonList(existingLicense)));
         assertThat(thriftUploader.getOrCreateLicenseId(license, user), is("42"));
     }

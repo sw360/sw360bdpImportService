@@ -10,15 +10,15 @@
 package com.bosch.osmi.sw360.bdp.datasink.thrift;
 
 import com.bosch.osmi.sw360.bdp.entitytranslation.TranslationConstants;
-import com.siemens.sw360.datahandler.common.CommonUtils;
-import com.siemens.sw360.datahandler.thrift.AddDocumentRequestStatus;
-import com.siemens.sw360.datahandler.thrift.AddDocumentRequestSummary;
-import com.siemens.sw360.datahandler.thrift.components.Component;
-import com.siemens.sw360.datahandler.thrift.components.Release;
-import com.siemens.sw360.datahandler.thrift.licenses.License;
-import com.siemens.sw360.datahandler.thrift.projects.Project;
-import com.siemens.sw360.datahandler.thrift.users.User;
-import com.siemens.sw360.datahandler.thrift.vendors.Vendor;
+import org.eclipse.sw360.datahandler.common.CommonUtils;
+import org.eclipse.sw360.datahandler.thrift.AddDocumentRequestStatus;
+import org.eclipse.sw360.datahandler.thrift.AddDocumentRequestSummary;
+import org.eclipse.sw360.datahandler.thrift.components.Component;
+import org.eclipse.sw360.datahandler.thrift.components.Release;
+import org.eclipse.sw360.datahandler.thrift.licenses.License;
+import org.eclipse.sw360.datahandler.thrift.projects.Project;
+import org.eclipse.sw360.datahandler.thrift.users.User;
+import org.eclipse.sw360.datahandler.thrift.vendors.Vendor;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
@@ -30,9 +30,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.siemens.sw360.datahandler.common.CommonUtils.nullToEmptyList;
-import static com.siemens.sw360.datahandler.thrift.AddDocumentRequestStatus.DUPLICATE;
-import static com.siemens.sw360.datahandler.thrift.AddDocumentRequestStatus.SUCCESS;
+import static org.eclipse.sw360.datahandler.common.CommonUtils.nullToEmptyList;
+import static org.eclipse.sw360.datahandler.thrift.AddDocumentRequestStatus.DUPLICATE;
+import static org.eclipse.sw360.datahandler.thrift.AddDocumentRequestStatus.SUCCESS;
 
 public class ThriftExchange {
 
@@ -79,7 +79,7 @@ public class ThriftExchange {
         return accessibleProjectsSummary;
     }
 
-    private com.siemens.sw360.datahandler.thrift.projects.ProjectService.Iface getProjectClient() {
+    private org.eclipse.sw360.datahandler.thrift.projects.ProjectService.Iface getProjectClient() {
         return thriftApi.getProjectClient();
     }
 
@@ -176,7 +176,7 @@ public class ThriftExchange {
         return licenses;
     }
 
-    private com.siemens.sw360.datahandler.thrift.users.UserService.Iface getUserClient() {
+    private org.eclipse.sw360.datahandler.thrift.users.UserService.Iface getUserClient() {
         return thriftApi.getUserClient();
     }
 
@@ -196,7 +196,7 @@ public class ThriftExchange {
         return vendorId;
     }
 
-    private com.siemens.sw360.datahandler.thrift.vendors.VendorService.Iface getVendorClient() {
+    private org.eclipse.sw360.datahandler.thrift.vendors.VendorService.Iface getVendorClient() {
         return thriftApi.getVendorClient();
     }
 
@@ -277,7 +277,7 @@ public class ThriftExchange {
         return licenses == null ? null : licenses.get(0).getId();
     }
 
-    private com.siemens.sw360.datahandler.thrift.components.ComponentService.Iface getComponentClient() {
+    private org.eclipse.sw360.datahandler.thrift.components.ComponentService.Iface getComponentClient() {
         return thriftApi.getComponentClient();
     }
 

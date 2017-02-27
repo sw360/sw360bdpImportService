@@ -9,8 +9,8 @@
  */
 package com.bosch.osmi.sw360.bdp.service;
 
-import com.siemens.sw360.datahandler.thrift.bdpimport.BdpImportService;
-import com.siemens.sw360.projects.Sw360ThriftServlet;
+import org.eclipse.sw360.datahandler.thrift.bdpimport.BdpImportService;
+import org.eclipse.sw360.projects.Sw360ThriftServlet;
 import org.apache.thrift.protocol.TCompactProtocol;
 
 import java.io.FileNotFoundException;

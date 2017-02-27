@@ -11,7 +11,7 @@ package com.bosch.osmi.sw360.bdp.datasource;
 
 import com.bosch.osmi.bdp.access.api.model.Component;
 import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
-import com.siemens.sw360.datahandler.thrift.bdpimport.RemoteCredentials;
+import org.eclipse.sw360.datahandler.thrift.bdpimport.RemoteCredentials;
 import org.junit.Before;
 import org.junit.Test;
 

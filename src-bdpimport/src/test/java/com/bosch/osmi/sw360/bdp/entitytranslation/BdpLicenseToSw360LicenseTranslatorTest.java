@@ -18,7 +18,7 @@ import static org.junit.Assert.assertThat;
 
 public class BdpLicenseToSw360LicenseTranslatorTest {
 
-	private com.siemens.sw360.datahandler.thrift.licenses.License license;
+	private org.eclipse.sw360.datahandler.thrift.licenses.License license;
 	private com.bosch.osmi.bdp.access.api.model.License licenseBdp;
 	
 	@Before

@@ -9,7 +9,7 @@
  */
 package com.bosch.osmi.sw360.bdp.entitytranslation;
 
-import com.siemens.sw360.datahandler.thrift.components.Component;
+import org.eclipse.sw360.datahandler.thrift.components.Component;
 
 public class BdpComponentToSw360ComponentTranslator implements EntityTranslator<com.bosch.osmi.bdp.access.api.model.Component, Component> {
 

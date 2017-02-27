@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 
 public class BdpProjectInfoToSw360ProjectTranslatorTest {
 	
-	private com.siemens.sw360.datahandler.thrift.projects.Project project;
+	private org.eclipse.sw360.datahandler.thrift.projects.Project project;
 	private ProjectInfo projectInfoBdp;
 
 	@Before
