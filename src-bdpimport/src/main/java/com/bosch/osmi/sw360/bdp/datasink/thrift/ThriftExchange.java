@@ -270,7 +270,7 @@ public class ThriftExchange {
     public String addLicense(License license, User user) {
         List<License> licenses = null;
         try {
-            licenses = thriftApi.getLicenseClient().addLicenses(Arrays.asList(license));
+            licenses = thriftApi.getLicenseClient().addLicenses(Arrays.asList(license), user);
         } catch (TException e) {
             logger.error("Could not add License for user with email=[" + user.getEmail() + "]:" + e);
         }

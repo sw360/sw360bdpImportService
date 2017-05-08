@@ -69,9 +69,8 @@ public class UserImpl implements User{
             return projectInfos;
 
         } catch (SdkFault sdkFault) {
-            LOGGER.error("Error occurred while retrieving project info for user with " + name + "from Bdp server.");
-            LOGGER.debug(sdkFault.getMessage());
-            throw new IllegalStateException(sdkFault.getCause());
+            LOGGER.error("Error occurred while retrieving project info for user with " + name + "from Bdp server: \n" + sdkFault.getMessage());
+            throw new IllegalStateException(sdkFault);
         }
     }
 
