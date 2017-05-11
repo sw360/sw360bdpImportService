@@ -49,7 +49,7 @@
     <groupId>com.bosch.osmi</groupId>
     <packaging>pom</packaging>
     <name>bdpimport</name>
-    <version>1.7.0</version>
+    <version>1.8.0-SNAPSHOT</version>
 
     <modules>
         <module>src-bdpimport</module>
