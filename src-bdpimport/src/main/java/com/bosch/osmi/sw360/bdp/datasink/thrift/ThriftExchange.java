@@ -86,7 +86,7 @@ public class ThriftExchange {
     public Optional<List<Release>> searchReleaseByNameAndVersion(String name, String version) {
         List<Release> releases = null;
         try {
-            releases = thriftApi.getComponentClient().searchReleaseByName(name);
+            releases = thriftApi.getComponentClient().searchReleaseByNamePrefix(name);
         } catch (TException e) {
             logger.error("Could not fetch Release list for name=[" + name + "], version=[" + version + "]:" + e);
         }

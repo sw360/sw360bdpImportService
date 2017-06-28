@@ -15,6 +15,9 @@ import com.bosch.osmi.sw360.bdp.entitytranslation.BdpComponentToSw360ComponentTr
 import com.bosch.osmi.sw360.bdp.entitytranslation.BdpComponentToSw360ReleaseTranslator;
 import com.bosch.osmi.sw360.bdp.entitytranslation.BdpLicenseToSw360LicenseTranslator;
 import com.bosch.osmi.sw360.bdp.entitytranslation.BdpProjectInfoToSw360ProjectTranslator;
+import org.eclipse.sw360.datahandler.thrift.MainlineState;
+import org.eclipse.sw360.datahandler.thrift.ProjectReleaseRelationship;
+import org.eclipse.sw360.datahandler.thrift.ReleaseRelationship;
 import org.eclipse.sw360.datahandler.thrift.RequestStatus;
 import org.eclipse.sw360.datahandler.thrift.components.Component;
 import org.eclipse.sw360.datahandler.thrift.components.Release;
@@ -156,7 +159,8 @@ public class ThriftUploader {
         Project projectSW360 = new BdpProjectInfoToSw360ProjectTranslator().apply(projectBdp);
         projectSW360.setProjectResponsible(user.getEmail());
         projectSW360.setReleaseIdToUsage(releaseIds.stream()
-                .collect(Collectors.toMap(Function.identity(), e -> "contained")));
+                .collect(Collectors.toMap(Function.identity(),
+                        e -> new ProjectReleaseRelationship(ReleaseRelationship.CONTAINED, MainlineState.OPEN))));
 
         return Optional.ofNullable(thriftExchange.addProject(projectSW360, user));
     }
