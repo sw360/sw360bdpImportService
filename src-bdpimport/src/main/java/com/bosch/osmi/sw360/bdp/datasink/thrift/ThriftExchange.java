@@ -86,7 +86,7 @@ public class ThriftExchange {
     public Optional<List<Release>> searchReleaseByNameAndVersion(String name, String version) {
         List<Release> releases = null;
         try {
-            releases = thriftApi.getComponentClient().searchReleaseByName(name);
+            releases = thriftApi.getComponentClient().searchReleaseByNamePrefix(name);
         } catch (TException e) {
             logger.error("Could not fetch Release list for name=[" + name + "], version=[" + version + "]:" + e);
         }
@@ -270,7 +270,7 @@ public class ThriftExchange {
     public String addLicense(License license, User user) {
         List<License> licenses = null;
         try {
-            licenses = thriftApi.getLicenseClient().addLicenses(Arrays.asList(license));
+            licenses = thriftApi.getLicenseClient().addLicenses(Arrays.asList(license), user);
         } catch (TException e) {
             logger.error("Could not add License for user with email=[" + user.getEmail() + "]:" + e);
         }
