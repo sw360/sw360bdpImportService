@@ -12,9 +12,9 @@ package com.bosch.osmi.sw360.bdp.datasink.thrift;
 import com.bosch.osmi.bdp.access.api.model.License;
 import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
 import com.bosch.osmi.sw360.bdp.datasource.BdpApiAccessWrapper;
+import org.apache.thrift.TException;
 import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import org.eclipse.sw360.datahandler.thrift.users.User;
-import org.apache.thrift.TException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,8 +36,8 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ThriftUploaderTest {
 
-    public static final String LICENSE_ID = "lic";
-    private final String PROJECT_ID = "theprojectid";
+    private static final String LICENSE_ID = "lic";
+    private static final String PROJECT_ID = "theprojectid";
 
     private ThriftUploader thriftUploader;
     private User user;
@@ -83,7 +83,7 @@ public class ThriftUploaderTest {
         };
 
         when(bdp.getProjectInfo(anyString())).thenReturn(bdpProject);
-        when(exchange.getAccessibleProject(anyString(), any(User.class))).thenReturn(project);
+        when(exchange.doesProjectAlreadyExists(anyString(), anyString(), any(User.class))).thenReturn(true);
         assertThat(thriftUploader.createProject("asasdf", user), is(Optional.empty()));
         verify(exchange, never()).addProject(any(Project.class), any(User.class));
     }

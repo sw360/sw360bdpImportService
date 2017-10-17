@@ -11,22 +11,20 @@ package com.bosch.osmi.sw360.bdp.datasink.thrift;
 
 import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
 import com.bosch.osmi.sw360.bdp.datasource.BdpApiAccessWrapper;
-import com.bosch.osmi.sw360.bdp.entitytranslation.BdpComponentToSw360ComponentTranslator;
-import com.bosch.osmi.sw360.bdp.entitytranslation.BdpComponentToSw360ReleaseTranslator;
-import com.bosch.osmi.sw360.bdp.entitytranslation.BdpLicenseToSw360LicenseTranslator;
-import com.bosch.osmi.sw360.bdp.entitytranslation.BdpProjectInfoToSw360ProjectTranslator;
-import org.eclipse.sw360.datahandler.thrift.MainlineState;
-import org.eclipse.sw360.datahandler.thrift.ProjectReleaseRelationship;
+import com.bosch.osmi.sw360.bdp.entitytranslation.*;
+import com.bosch.osmi.sw360.bdp.entitytranslation.helper.ReleaseRelation;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 import org.eclipse.sw360.datahandler.thrift.ReleaseRelationship;
 import org.eclipse.sw360.datahandler.thrift.RequestStatus;
 import org.eclipse.sw360.datahandler.thrift.components.Component;
 import org.eclipse.sw360.datahandler.thrift.components.Release;
+import org.eclipse.sw360.datahandler.thrift.importstatus.ImportStatus;
 import org.eclipse.sw360.datahandler.thrift.licenses.License;
 import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import org.eclipse.sw360.datahandler.thrift.users.User;
-import org.eclipse.sw360.datahandler.thrift.importstatus.ImportStatus;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
 import java.util.*;
 import java.util.function.Function;
@@ -39,15 +37,26 @@ public class ThriftUploader {
 
     private static final Logger logger = Logger.getLogger(ThriftUploader.class);
 
-    private ThriftExchange thriftExchange;
-    private BdpApiAccessWrapper bdpApiAccessWrapper;
+    private final BdpComponentToSw360ComponentTranslator componentToComponentTranslator = new BdpComponentToSw360ComponentTranslator();
+    private final BdpComponentToSw360ReleaseTranslator componentToReleaseTranslator = new BdpComponentToSw360ReleaseTranslator();
+    private final BdpLicenseToSw360LicenseTranslator licenseToLicenseTranslator = new BdpLicenseToSw360LicenseTranslator();
+    private final BdpProjectInfoToSw360ProjectTranslator projectInfoToProjectTranslator = new BdpProjectInfoToSw360ProjectTranslator();
+    private final BdpUsageLevelToSw360ReleaseRelationship usageLevelToReleaseRelationshipTranslator = new BdpUsageLevelToSw360ReleaseRelationship();
 
-    public ThriftUploader(ThriftExchange thriftExchange, BdpApiAccessWrapper bdpApiAccessWrapper) {
-        this.thriftExchange = thriftExchange;
+    private final ThriftExchange thriftExchange;
+    private final BdpApiAccessWrapper bdpApiAccessWrapper;
+
+    public ThriftUploader(BdpApiAccessWrapper bdpApiAccessWrapper) {
+        this(new ThriftExchange(), bdpApiAccessWrapper);
+    }
+
+    @VisibleForTesting
+    ThriftUploader(ThriftExchange thriftExchange, BdpApiAccessWrapper bdpApiAccessWrapper) {
+        this.thriftExchange=thriftExchange;
         this.bdpApiAccessWrapper = bdpApiAccessWrapper;
     }
 
-    protected <T> Optional<String> searchExistingEntityId(Optional<List<T>> nomineesOpt, Function<T, String> idExtractor, String nameBdp, String nameSW360) {
+    private <T> Optional<String> searchExistingEntityId(Optional<List<T>> nomineesOpt, Function<T, String> idExtractor, String nameBdp, String nameSW360) {
         return nomineesOpt.flatMap(
                 nominees -> {
                     Optional<String> nomineeId = nominees.stream()
@@ -77,14 +86,14 @@ public class ThriftUploader {
         if (potentialLicenseId.isPresent()) {
             return potentialLicenseId.get();
         } else {
-            License licenseSW360 = new BdpLicenseToSw360LicenseTranslator().apply(licenseBdp);
+            License licenseSW360 = licenseToLicenseTranslator.apply(licenseBdp);
             String licenseId = thriftExchange.addLicense(licenseSW360, user);
             logger.info("Imported license: " + licenseId);
             return licenseId;
         }
     }
 
-    protected String getOrCreateComponent(com.bosch.osmi.bdp.access.api.model.Component componentBdp, User user) {
+    private String getOrCreateComponent(com.bosch.osmi.bdp.access.api.model.Component componentBdp, User user) {
         logger.info("Try to import bdp Component: " + componentBdp.getName());
 
         String componentVersion = isNullOrEmpty(componentBdp.getComponentVersion()) ? BdpComponentToSw360ReleaseTranslator.unknownVersionString : componentBdp.getComponentVersion();
@@ -96,7 +105,7 @@ public class ThriftUploader {
             return potentialReleaseId.get();
         }
 
-        Release releaseSW360 = new BdpComponentToSw360ReleaseTranslator().apply(componentBdp);
+        Release releaseSW360 = componentToReleaseTranslator.apply(componentBdp);
         releaseSW360.getModerators().add(user.getEmail());
 
         Optional<String> potentialComponentId = searchExistingEntityId(thriftExchange.searchComponentByName(componentBdp.getName()),
@@ -106,41 +115,50 @@ public class ThriftUploader {
         if (potentialComponentId.isPresent()) {
             componentId = potentialComponentId.get();
         } else {
-            Component componentSW360 = new BdpComponentToSw360ComponentTranslator().apply(componentBdp);
+            Component componentSW360 = componentToComponentTranslator.apply(componentBdp);
             componentId = thriftExchange.addComponent(componentSW360, user);
         }
         releaseSW360.setComponentId(componentId);
 
         String licenseId = getOrCreateLicenseId(componentBdp.getLicense(), user);
-        releaseSW360.setMainLicenseIds(new HashSet<>(Collections.singletonList(licenseId)));
+        releaseSW360.setMainLicenseIds(Collections.singleton(licenseId));
 
         return thriftExchange.addRelease(releaseSW360, user);
     }
 
-    protected Set<String> getOrCreateComponents(ProjectInfo projectBdp, User user) {
+    private ReleaseRelation createReleaseRelation(com.bosch.osmi.bdp.access.api.model.Component componentBdp, User user) {
+        String releaseId = getOrCreateComponent(componentBdp, user);
+        if (releaseId == null) {
+            return null;
+        } else {
+            ReleaseRelationship releaseRelationship = usageLevelToReleaseRelationshipTranslator.apply(componentBdp.getUsageLevel());
+            return new ReleaseRelation(releaseId, releaseRelationship);
+        }
+    }
+
+    private Set<ReleaseRelation> createReleaseRelations(ProjectInfo projectBdp, User user) {
         Collection<com.bosch.osmi.bdp.access.api.model.Component> componentsBdp = projectBdp.getProject().getComponents();
         if (componentsBdp == null) {
-            return Collections.EMPTY_SET;
+            return ImmutableSet.of();
         }
 
-        Set<String> releaseIds = componentsBdp.stream()
-                .map(c -> getOrCreateComponent(c, user))
-                .filter(id -> id != null)
+        Set<ReleaseRelation> releaseRelations = componentsBdp.stream()
+                .map(c -> createReleaseRelation(c, user))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        if (releaseIds.size() != componentsBdp.size()) {
-            logger.warn("expected to get " + componentsBdp.size() + " different ids of releases but got " + releaseIds.size());
+        if (releaseRelations.size() != componentsBdp.size()) {
+            logger.warn("expected to get " + componentsBdp.size() + " different ids of releases but got " + releaseRelations.size());
         } else {
             logger.info("The expected number of releases was imported or already found in database.");
         }
 
-        return releaseIds;
+        return releaseRelations;
     }
 
     protected Optional<String> createProject(String bdpId, User user) throws TException  {
         logger.info("Try to import bdp Project: " + bdpId);
         logger.info("Sw360-User: " + user.email);
-        logger.info("Remote-Credentials: " + bdpApiAccessWrapper.getEmailAddress());
 
         com.bosch.osmi.bdp.access.api.model.ProjectInfo projectBdp = bdpApiAccessWrapper.getProjectInfo(bdpId);
         if (projectBdp == null) {
@@ -149,35 +167,19 @@ public class ThriftUploader {
         }
 
         String bdpName = projectBdp.getProjectName();
-        if (getProjectId(bdpId, bdpName, user).isPresent()) {
+        if (thriftExchange.doesProjectAlreadyExists(bdpId, bdpName, user)) {
             logger.error("Project already in database: " + bdpId);
             return Optional.empty();
         }
 
-        Set<String> releaseIds = getOrCreateComponents(projectBdp, user);
+        Set<ReleaseRelation> releaseRelations = createReleaseRelations(projectBdp, user);
 
-        Project projectSW360 = new BdpProjectInfoToSw360ProjectTranslator().apply(projectBdp);
+        Project projectSW360 = projectInfoToProjectTranslator.apply(projectBdp);
         projectSW360.setProjectResponsible(user.getEmail());
-        projectSW360.setReleaseIdToUsage(releaseIds.stream()
-                .collect(Collectors.toMap(Function.identity(),
-                        e -> new ProjectReleaseRelationship(ReleaseRelationship.CONTAINED, MainlineState.OPEN))));
+        projectSW360.setReleaseIdToUsage(releaseRelations.stream()
+                .collect(Collectors.toMap(ReleaseRelation::getReleaseId, ReleaseRelation::getProjectReleaseRelationship)));
 
         return Optional.ofNullable(thriftExchange.addProject(projectSW360, user));
-    }
-
-    protected Optional<String> getProjectId(String bdpId, String bdpName, User user) throws TException  {
-
-        Project existingProject = thriftExchange.getAccessibleProjectByBdpId(bdpId, user);
-        if (existingProject != null) {
-            logger.info("Project to import was already imported with bdpId: " + bdpId);
-            return Optional.ofNullable(existingProject.getId());
-        }
-        existingProject = thriftExchange.getAccessibleProject(bdpName, user);
-        if (existingProject != null) {
-            logger.info("Project to import already exists in the DB with name: " + bdpName);
-            return Optional.ofNullable(existingProject.getId());
-        }
-        return Optional.empty();
     }
 
     public ImportStatus importBdpProjects(Collection<String> bdpProjectIds, User user) {

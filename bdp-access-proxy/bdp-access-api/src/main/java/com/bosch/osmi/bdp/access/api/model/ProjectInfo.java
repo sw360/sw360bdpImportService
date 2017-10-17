@@ -16,5 +16,4 @@ public interface ProjectInfo extends BdpEntity {
     String getProjectName();
     String getProjectId();
     Project getProject();
-
 }

@@ -8,7 +8,11 @@
  */
 package com.bosch.osmi.bdp.access.api;
 
+import com.bosch.osmi.bdp.access.api.model.Project;
+import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
 import com.bosch.osmi.bdp.access.api.model.User;
+
+import java.util.Collection;
 
 /**
  * @author johannes.kristan@bosch-si.com
@@ -16,5 +20,15 @@ import com.bosch.osmi.bdp.access.api.model.User;
  */
 public interface BdpApiAccess {
     boolean validateCredentials();
+
+    Collection<ProjectInfo> suggestProjectInfos(String projectName);
+
+    Project getProject(String bdpId);
+
+    /**
+     * This old method of lazily loading all the data is very slow. Use only for mock data generation
+     * and avoid it in production code
+     */
+    @Deprecated
     User retrieveUser();
 }

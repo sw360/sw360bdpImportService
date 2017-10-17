@@ -11,10 +11,8 @@ package com.bosch.osmi.sw360.bdp.datasink.thrift;
 
 import org.eclipse.sw360.datahandler.thrift.components.Component;
 import org.eclipse.sw360.datahandler.thrift.components.Release;
-import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import org.eclipse.sw360.datahandler.thrift.users.User;
 import org.eclipse.sw360.datahandler.thrift.vendors.Vendor;
-import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -38,7 +36,7 @@ public class ThriftExchangeTest {
 
 	@Before
 	public void setUp() throws Exception {
-		thriftExchange = new ThriftExchange(new ThriftApiSimple());
+		thriftExchange = new ThriftExchange();
 		user = null;
 	}
 
@@ -55,14 +53,6 @@ public class ThriftExchangeTest {
 		List<Vendor> allVendors = thriftExchange.getAllVendors();
 		assertThat(allVendors, is(notNullValue()));
 		assertThat(allVendors.isEmpty(), is(false));
-	}
-
-	@Ignore("Does not work, if no user is registered in DB. How to get/create a test user?")
-	@Test
-	public void testGetAccessibleProjectsSummary() throws TException {
-		List<Project> accessibleProjectsSummary = thriftExchange.getAccessibleProjectsSummary(user);
-		assertThat(accessibleProjectsSummary, is(notNullValue()));
-		assertThat(accessibleProjectsSummary.isEmpty(), is(false));
 	}
 
 	@Ignore("Does not work, if no user is registered in DB. How to get/create a test user?")

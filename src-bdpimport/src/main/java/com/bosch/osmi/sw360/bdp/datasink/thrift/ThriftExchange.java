@@ -10,6 +10,8 @@
 package com.bosch.osmi.sw360.bdp.datasink.thrift;
 
 import com.bosch.osmi.sw360.bdp.entitytranslation.TranslationConstants;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 import org.eclipse.sw360.datahandler.common.CommonUtils;
 import org.eclipse.sw360.datahandler.thrift.AddDocumentRequestStatus;
 import org.eclipse.sw360.datahandler.thrift.AddDocumentRequestSummary;
@@ -19,17 +21,13 @@ import org.eclipse.sw360.datahandler.thrift.licenses.License;
 import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import org.eclipse.sw360.datahandler.thrift.users.User;
 import org.eclipse.sw360.datahandler.thrift.vendors.Vendor;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.eclipse.sw360.datahandler.common.CommonUtils.nullToEmptyList;
 import static org.eclipse.sw360.datahandler.thrift.AddDocumentRequestStatus.DUPLICATE;
 import static org.eclipse.sw360.datahandler.thrift.AddDocumentRequestStatus.SUCCESS;
@@ -37,13 +35,9 @@ import static org.eclipse.sw360.datahandler.thrift.AddDocumentRequestStatus.SUCC
 public class ThriftExchange {
 
     private static final Logger logger = Logger.getLogger(ThriftExchange.class);
-    private ThriftApi thriftApi;
+    private final ThriftApi thriftApi = new ThriftApiSimple();
 
-    public ThriftExchange(ThriftApi thriftApi) {
-        this.thriftApi = thriftApi;
-    }
-
-    public List<Vendor> getAllVendors() {
+    List<Vendor> getAllVendors() {
         List<Vendor> allVendors = null;
         try {
             allVendors = getVendorClient().getAllVendors();
@@ -53,30 +47,39 @@ public class ThriftExchange {
         return allVendors;
     }
 
-    public Project getAccessibleProject(String projectName, User user) throws TException{
-        return nullToEmptyList(getAccessibleProjectsSummary(user))
-                .stream()
-                .collect(Collectors.toMap(Project::getName, Function.identity()))
-                .get(projectName);
+    boolean doesProjectAlreadyExists(String bdpId, String bdpName, User user) throws TException {
+        List<Project> accessibleProjects = getAccessibleProjectsSummary(user);
+
+        if (hasAccessibleProjectWithBdpId(bdpName, accessibleProjects)) {
+            logger.info("Project to import was already imported with bdpId: " + bdpId);
+            return true;
+        }
+        if (hasAccessibleProjectWithName(bdpName, accessibleProjects)) {
+            logger.info("Project to import already exists in the DB with name: " + bdpName);
+            return true;
+        }
+        return false;
     }
 
-    public Project getAccessibleProjectByBdpId(String bdpId, User user) throws TException{
-        return nullToEmptyList(getAccessibleProjectsSummary(user))
-                .stream()
-                .filter(project -> project.isSetExternalIds())
-                .filter(project -> ! isNullOrEmpty(project.getExternalIds().get(TranslationConstants.BDP_ID)))
-                .collect(Collectors.toMap(project -> project.getExternalIds().get(TranslationConstants.BDP_ID), Function.identity()))
-                .get(bdpId);
+    private boolean hasAccessibleProjectWithName(String projectName, List<Project> accessibleProjects) throws TException {
+        return accessibleProjects.stream()
+                .anyMatch(project -> projectName.equals(project.getName()));
     }
 
-    protected List<Project> getAccessibleProjectsSummary(User user) {
+    private boolean hasAccessibleProjectWithBdpId(String bdpId, List<Project> accessibleProjects) throws TException {
+        return accessibleProjects.stream()
+                .filter(Project::isSetExternalIds)
+                .anyMatch(project -> bdpId.equals(project.getExternalIds().get(TranslationConstants.BDP_ID)));
+    }
+
+    private List<Project> getAccessibleProjectsSummary(User user) {
         List<Project> accessibleProjectsSummary = null;
         try {
             accessibleProjectsSummary = getProjectClient().getAccessibleProjectsSummary(user);
         } catch (TException e) {
             logger.error("Could not fetch Project list for user with email=[" + user.getEmail() + "]:" + e);
         }
-        return accessibleProjectsSummary;
+        return nullToEmptyList(accessibleProjectsSummary);
     }
 
     private org.eclipse.sw360.datahandler.thrift.projects.ProjectService.Iface getProjectClient() {
@@ -107,21 +110,6 @@ public class ThriftExchange {
             logger.error("Could not fetch Component list for name=[" + name + "]:" + e);
             return Optional.empty();
         }
-    }
-
-    public Optional<Component> getComponentById(String componentId, User user) {
-        try {
-            return Optional.of(getComponentClient().getComponentById(componentId, user));
-        } catch (TException e) {
-            logger.error("Could not fetch Component for user with email=[" + user.getEmail() + "], id=[" + componentId + "]:" + e);
-            return Optional.empty();
-        }
-    }
-
-    public Optional<List<License>> searchLicenseByName(String name) {
-        return getFilteredLicenseList(license -> CommonUtils.nullToEmptyString(license.getFullname()).equals(name),
-                "name=[" + name + "]:"
-        );
     }
 
     public Optional<List<License>> searchLicenseByBdpId(String bdpId) {
@@ -166,20 +154,6 @@ public class ThriftExchange {
         return releaseSummary;
     }
 
-    public List<License> getLicenses() {
-        List<License> licenses = null;
-        try {
-            licenses = thriftApi.getLicenseClient().getLicenses();
-        } catch (TException e) {
-            logger.error("Could not fetch License list:" + e);
-        }
-        return licenses;
-    }
-
-    private org.eclipse.sw360.datahandler.thrift.users.UserService.Iface getUserClient() {
-        return thriftApi.getUserClient();
-    }
-
     /**
      * Add the Vendor to DB. Required fields are: fullname, shortname, url.
      *
@@ -211,7 +185,7 @@ public class ThriftExchange {
         String componentId = null;
         try {
             AddDocumentRequestSummary summary = getComponentClient().addComponent(component, user);
-            if(SUCCESS.equals(summary.getRequestStatus())) {
+            if (SUCCESS.equals(summary.getRequestStatus())) {
                 componentId = summary.getId();
             } else {
                 logFailedAddDocument(summary.getRequestStatus(), "component");
@@ -222,9 +196,9 @@ public class ThriftExchange {
         return componentId;
     }
 
-    private void logFailedAddDocument(AddDocumentRequestStatus status, String documentTypeString){
-        if(DUPLICATE.equals(status)){
-            logger.error("Could not add duplicate "+ documentTypeString + ".");
+    private void logFailedAddDocument(AddDocumentRequestStatus status, String documentTypeString) {
+        if (DUPLICATE.equals(status)) {
+            logger.error("Could not add duplicate " + documentTypeString + ".");
         } else {
             logger.error("Adding the " + documentTypeString + "failed.");
         }
@@ -241,7 +215,7 @@ public class ThriftExchange {
         String releaseId = null;
         try {
             AddDocumentRequestSummary summary = getComponentClient().addRelease(release, user);
-            if(SUCCESS.equals(summary.getRequestStatus())) {
+            if (SUCCESS.equals(summary.getRequestStatus())) {
                 releaseId = summary.getId();
             } else {
                 logFailedAddDocument(summary.getRequestStatus(), "release");
@@ -256,7 +230,7 @@ public class ThriftExchange {
         String projectId = null;
         try {
             AddDocumentRequestSummary summary = thriftApi.getProjectClient().addProject(project, user);
-            if(SUCCESS.equals(summary.getRequestStatus())) {
+            if (SUCCESS.equals(summary.getRequestStatus())) {
                 projectId = summary.getId();
             } else {
                 logFailedAddDocument(summary.getRequestStatus(), "project");
@@ -270,7 +244,7 @@ public class ThriftExchange {
     public String addLicense(License license, User user) {
         List<License> licenses = null;
         try {
-            licenses = thriftApi.getLicenseClient().addLicenses(Arrays.asList(license), user);
+            licenses = thriftApi.getLicenseClient().addLicenses(Collections.singletonList(license), user);
         } catch (TException e) {
             logger.error("Could not add License for user with email=[" + user.getEmail() + "]:" + e);
         }
