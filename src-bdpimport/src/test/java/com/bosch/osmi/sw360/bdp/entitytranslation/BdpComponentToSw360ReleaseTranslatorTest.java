@@ -10,6 +10,7 @@
 package com.bosch.osmi.sw360.bdp.entitytranslation;
 
 import com.bosch.osmi.bdp.access.api.model.License;
+import org.eclipse.sw360.datahandler.thrift.components.ClearingState;
 import org.eclipse.sw360.datahandler.thrift.components.Release;
 import org.junit.Before;
 import org.junit.Test;
@@ -122,4 +123,8 @@ public class BdpComponentToSw360ReleaseTranslatorTest {
 		assertThat("Has to be attached afterwards", componentBdp.getLicense(), is(nullValue()));
 	}
 
+	@Test
+	public void testGetClearingState() {
+		assertThat("Has to be attached afterwards", release.getClearingState(), is(ClearingState.NEW_CLEARING));
+	}
 }

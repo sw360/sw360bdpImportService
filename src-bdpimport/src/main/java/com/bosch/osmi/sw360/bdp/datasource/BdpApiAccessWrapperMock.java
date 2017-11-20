@@ -7,10 +7,11 @@
  * http://www.eclipse.org/legal/epl-v10.html
  */
 
-package com.bosch.osmi.bdp.access.mock;
+package com.bosch.osmi.sw360.bdp.datasource;
 
-import com.bosch.osmi.bdp.access.api.BdpApiAccess;
+import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
 import com.bosch.osmi.bdp.access.api.model.User;
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -18,48 +19,41 @@ import com.google.gson.JsonParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+public class BdpApiAccessWrapperMock implements BdpApiAccessWrapper {
 
-/**
- * Allows an access to the Bdp APIs. An access has to be initialized with a username and a password for which
- * a user object can be retrieved. The user object is the actual entry point into the whole object net retrieved
- * from Bdp.
- *
- * @author johannes.kristan@bosch-si.com
- * @since 11/16/15.
- */
-public class BdpApiAccessMockImpl implements BdpApiAccess {
+    private static final String MOCKDATA_CLASSPATH_LOCATION = "/mockdata.json";
+    private static final Logger LOGGER = LogManager.getLogger(BdpApiAccessWrapperMock.class);
 
-    public static final String MOCKDATA_CLASSPATH_LOCATION = "/mockdata.json";
-    private static final Logger LOGGER = LogManager.getLogger(BdpApiAccessMockImpl.class);
-    private JsonObject sourceFile;
+    private final User user;
 
-    public BdpApiAccessMockImpl() {
+    public BdpApiAccessWrapperMock() {
+        this(new InputStreamReader(BdpApiAccessWrapperMock.class.getResourceAsStream(MOCKDATA_CLASSPATH_LOCATION)));
         LOGGER.info("Initialize mock implementation with data from classpath.");
-        InputStream inputStream = BdpApiAccessMockImpl.class.getResourceAsStream(MOCKDATA_CLASSPATH_LOCATION);
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        sourceFile = readJsonFile(inputStreamReader);
     }
 
-    public BdpApiAccessMockImpl(String jsonFilePath) throws FileNotFoundException {
+    public BdpApiAccessWrapperMock(String jsonFilePath) throws FileNotFoundException {
+        this(new FileReader(jsonFilePath));
         LOGGER.info("Initialize mock implementation with data from " + jsonFilePath + ".");
-        sourceFile = readJsonFile(new FileReader(jsonFilePath));
-
     }
 
-    @Override
-    public boolean validateCredentials() {
-        return true;
+    private BdpApiAccessWrapperMock(Reader jsonReader) {
+        JsonObject sourceFile = readJsonFile(jsonReader);
+        user = retrieveUser(sourceFile);
     }
 
-    public User retrieveUser() {
+    private User retrieveUser(JsonObject sourceFile) {
         JsonInvocationHandler handler = new JsonInvocationHandler(sourceFile);
         return (User) Proxy.newProxyInstance(
                 User.class.getClassLoader(),
@@ -74,12 +68,37 @@ public class BdpApiAccessMockImpl implements BdpApiAccess {
         return jsonElement.getAsJsonObject();
     }
 
+    @Override
+    public boolean validateCredentials() {
+        return true;
+    }
+
+    @Override
+    public Collection<ProjectInfo> getUserProjectInfos() {
+        return user.getProjectInfos();
+    }
+
+    @Override
+    public Collection<ProjectInfo> suggestProjectInfos(String projectName) {
+        return user.getProjectInfos()
+                .stream()
+                .filter(projectInfo -> Strings.nullToEmpty(projectInfo.getProjectName()).startsWith(projectName))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ProjectInfo getProjectInfo(String bdpId) {
+        return getUserProjectInfos()
+                .stream()
+                .filter(projectInfo -> bdpId.equals(projectInfo.getProjectId()))
+                .findAny()
+                .orElse(null);
+    }
 
     /**
      * InvocationHandler that handles incoming method requests to api methods and forwards them to the respective entry
      * in a json object with the data. The json-object is retrieved when an object of the host class is created.  The
      * invocation handler is registered at a proxy object that acts as an implementation of the bdp api.
-     *
      */
     private static class JsonInvocationHandler implements InvocationHandler {
         // http://tutorials.jenkov.com/java-reflection/dynamic-proxies.html
@@ -99,12 +118,12 @@ public class BdpApiAccessMockImpl implements BdpApiAccess {
             String typeName = method.getDeclaringClass().getCanonicalName();
             String methodName = method.getName();
 
-            if(Object.class == method.getDeclaringClass()) {
-                if("equals".equals(methodName)) {
+            if (Object.class == method.getDeclaringClass()) {
+                if ("equals".equals(methodName)) {
                     return proxy == args[0];
-                } else if("hashCode".equals(methodName)) {
+                } else if ("hashCode".equals(methodName)) {
                     return System.identityHashCode(proxy);
-                } else if("toString".equals(methodName)) {
+                } else if ("toString".equals(methodName)) {
                     return proxy.getClass().getName() + "@" +
                             Integer.toHexString(System.identityHashCode(proxy)) +
                             ", with InvocationHandler " + this;

@@ -10,9 +10,11 @@
 package com.bosch.osmi.sw360.bdp.entitytranslation;
 
 import com.bosch.osmi.bdp.access.api.model.Component;
+import org.eclipse.sw360.datahandler.thrift.components.ClearingState;
 import org.eclipse.sw360.datahandler.thrift.components.Release;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -26,10 +28,10 @@ public class BdpComponentToSw360ReleaseTranslator implements EntityTranslator<Co
         releaseSW360.setExternalIds(new HashMap<>());
 
         releaseSW360.setName(componentBdp.getName());
-        releaseSW360.getExternalIds().put(TranslationConstants.BDP_ID,componentBdp.getComponentKey());
+        releaseSW360.getExternalIds().put(TranslationConstants.BDP_ID, componentBdp.getComponentKey());
 
 
-        if (! isNullOrEmpty(componentBdp.getComponentVersion())) {
+        if (!isNullOrEmpty(componentBdp.getComponentVersion())) {
             releaseSW360.setVersion(componentBdp.getComponentVersion());
         } else {
             // this appears for example, if componentBdp.getUsageLevel() == "ORIGINAL_CODE"
@@ -44,6 +46,8 @@ public class BdpComponentToSw360ReleaseTranslator implements EntityTranslator<Co
 // Not yet used:
 // componentBdp.getComponentComment();
 // componentBdp.getUsageLevel();
+
+        releaseSW360.setClearingState(ClearingState.NEW_CLEARING);
 
         return releaseSW360;
     }

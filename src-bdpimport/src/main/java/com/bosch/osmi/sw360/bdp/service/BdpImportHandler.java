@@ -9,18 +9,19 @@
  */
 package com.bosch.osmi.sw360.bdp.service;
 
-import com.bosch.osmi.sw360.bdp.datasink.thrift.ThriftApiSimple;
-import com.bosch.osmi.sw360.bdp.datasink.thrift.ThriftExchange;
 import com.bosch.osmi.sw360.bdp.datasink.thrift.ThriftUploader;
-import com.bosch.osmi.sw360.bdp.datasource.BdpApiAccessWrapperSimple;
+import com.bosch.osmi.sw360.bdp.datasource.BdpApiAccessWrapper;
+import com.bosch.osmi.sw360.bdp.datasource.BdpApiAccessWrapperMock;
+import com.bosch.osmi.sw360.bdp.datasource.BdpApiAccessWrapperNew;
 import com.bosch.osmi.sw360.bdp.entitytranslation.BdpProjectInfoToSw360ProjectTranslator;
 import com.bosch.osmi.sw360.bdp.entitytranslation.TranslationConstants;
-import org.eclipse.sw360.datahandler.thrift.projects.Project;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 import org.eclipse.sw360.datahandler.thrift.bdpimport.BdpImportService;
 import org.eclipse.sw360.datahandler.thrift.bdpimport.RemoteCredentials;
 import org.eclipse.sw360.datahandler.thrift.importstatus.ImportStatus;
+import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import org.eclipse.sw360.datahandler.thrift.users.User;
-import org.apache.thrift.TException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,22 +34,47 @@ import java.util.stream.Collectors;
  */
 public class BdpImportHandler implements BdpImportService.Iface {
 
+    private static final Logger log = Logger.getLogger(BdpImportHandler.class);
+
+    private static BdpApiAccessWrapper getBdpApiAccessWrapper(RemoteCredentials remoteCredentials) {
+        String serverUrl = remoteCredentials.getServerUrl();
+
+        log.info("server: " + remoteCredentials.getServerUrl());
+        if ("mock".equals(serverUrl)) {
+            log.error("Using the mock with canned data.");
+            return new BdpApiAccessWrapperMock();
+        } else {
+            return new BdpApiAccessWrapperNew(remoteCredentials);
+        }
+    }
+
     @Override
     public synchronized ImportStatus importDatasources(List<String> bdpProjectIds, User user, RemoteCredentials remoteCredentials) throws TException {
-        BdpApiAccessWrapperSimple bdpApiAccessWrapper = new BdpApiAccessWrapperSimple(remoteCredentials);
-        ThriftUploader thriftUploader = new ThriftUploader(new ThriftExchange(new ThriftApiSimple()), bdpApiAccessWrapper);
+        BdpApiAccessWrapper bdpApiAccessWrapper = getBdpApiAccessWrapper(remoteCredentials);
+        ThriftUploader thriftUploader = new ThriftUploader(bdpApiAccessWrapper);
 
         return thriftUploader.importBdpProjects(bdpProjectIds, user);
     }
 
     @Override
-    public boolean validateCredentials(RemoteCredentials credentials) throws TException {
-        return new BdpApiAccessWrapperSimple(credentials).validateCredentials();
+    public boolean validateCredentials(RemoteCredentials remoteCredentials) throws TException {
+        return getBdpApiAccessWrapper(remoteCredentials)
+                .validateCredentials();
     }
 
     @Override
     public List<Project> loadImportables(RemoteCredentials remoteCredentials) {
-        return new BdpApiAccessWrapperSimple(remoteCredentials).getUserProjectInfos()
+        return getBdpApiAccessWrapper(remoteCredentials)
+                .getUserProjectInfos()
+                .stream()
+                .map(new BdpProjectInfoToSw360ProjectTranslator())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Project> suggestImportables(RemoteCredentials remoteCredentials, String projectName) throws TException {
+        return getBdpApiAccessWrapper(remoteCredentials)
+                .suggestProjectInfos(projectName)
                 .stream()
                 .map(new BdpProjectInfoToSw360ProjectTranslator())
                 .collect(Collectors.toList());
@@ -58,5 +84,4 @@ public class BdpImportHandler implements BdpImportService.Iface {
     public String getIdName(){
         return TranslationConstants.BDP_ID;
     }
-
 }

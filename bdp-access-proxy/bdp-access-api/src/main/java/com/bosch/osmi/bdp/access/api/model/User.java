@@ -16,7 +16,5 @@ import java.util.Collection;
  */
 public interface User extends BdpEntity {
     String getEmailAddress();
-    String getFirstName();
-    String getLastName();
     Collection<ProjectInfo> getProjectInfos();
 }

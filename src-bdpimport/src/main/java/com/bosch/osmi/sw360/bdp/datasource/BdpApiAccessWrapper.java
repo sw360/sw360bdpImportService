@@ -9,24 +9,21 @@
  */
 package com.bosch.osmi.sw360.bdp.datasource;
 
-import com.bosch.osmi.bdp.access.api.model.Component;
-import com.bosch.osmi.bdp.access.api.model.License;
 import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
 
 import java.util.Collection;
-import java.util.Map;
 
 public interface BdpApiAccessWrapper {
 
     boolean validateCredentials();
 
-    String getEmailAddress();
-
+    /**
+     * Too slow on production environments, please use suggestProjectInfos instead
+     */
+    @Deprecated
     Collection<ProjectInfo> getUserProjectInfos();
 
-    Map<ProjectInfo, Collection<Component>> getProjectInfoMapComponents();
-
-    Map<Component, License> getComponentMapLicense(Collection<Component> allComponent);
+    Collection<ProjectInfo> suggestProjectInfos(String projectName);
 
     ProjectInfo getProjectInfo(String bdpId);
 }
