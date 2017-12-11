@@ -30,7 +30,7 @@ import com.bosch.osmi.bdp.access.impl.model.ProjectInfoImpl;
 import com.bosch.osmi.bdp.access.impl.model.UserImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.sw360.datahandler.thrift.bdpimport.RemoteCredentials;
+import org.eclipse.sw360.datahandler.thrift.projectimport.RemoteCredentials;
 
 import java.util.ArrayList;
 import java.util.Collection;

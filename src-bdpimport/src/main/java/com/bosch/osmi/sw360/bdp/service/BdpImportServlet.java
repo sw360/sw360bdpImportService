@@ -9,9 +9,9 @@
  */
 package com.bosch.osmi.sw360.bdp.service;
 
-import org.eclipse.sw360.datahandler.thrift.bdpimport.BdpImportService;
-import org.eclipse.sw360.projects.Sw360ThriftServlet;
 import org.apache.thrift.protocol.TCompactProtocol;
+import org.eclipse.sw360.datahandler.thrift.projectimport.ProjectImportService;
+import org.eclipse.sw360.projects.Sw360ThriftServlet;
 
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
@@ -24,6 +24,6 @@ import java.net.MalformedURLException;
 public class BdpImportServlet extends Sw360ThriftServlet {
     public BdpImportServlet() throws MalformedURLException, FileNotFoundException {
         // Create a service processor using the provided handler
-        super(new BdpImportService.Processor<>(new BdpImportHandler()), new TCompactProtocol.Factory());
+        super(new ProjectImportService.Processor<>(new BdpImportHandler()), new TCompactProtocol.Factory());
     }
 }

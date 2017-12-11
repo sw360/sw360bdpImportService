@@ -10,6 +10,8 @@
 package com.bosch.osmi.sw360.bdp.datasink.thrift;
 
 import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
+import com.bosch.osmi.sw360.bdp.datasink.thrift.helper.ProjectImportError;
+import com.bosch.osmi.sw360.bdp.datasink.thrift.helper.ProjectImportResult;
 import com.bosch.osmi.sw360.bdp.datasource.BdpApiAccessWrapper;
 import com.bosch.osmi.sw360.bdp.entitytranslation.*;
 import com.bosch.osmi.sw360.bdp.entitytranslation.helper.ReleaseRelation;
@@ -156,20 +158,20 @@ public class ThriftUploader {
         return releaseRelations;
     }
 
-    protected Optional<String> createProject(String bdpId, User user) throws TException  {
+    protected ProjectImportResult createProject(String bdpId, User user) throws TException  {
         logger.info("Try to import bdp Project: " + bdpId);
         logger.info("Sw360-User: " + user.email);
 
         com.bosch.osmi.bdp.access.api.model.ProjectInfo projectBdp = bdpApiAccessWrapper.getProjectInfo(bdpId);
         if (projectBdp == null) {
             logger.error("Unable to get Project from BDP Server named: " + bdpId);
-            return Optional.empty();
+            return new ProjectImportResult(ProjectImportError.PROJECT_NOT_FOUND);
         }
 
         String bdpName = projectBdp.getProjectName();
         if (thriftExchange.doesProjectAlreadyExists(bdpId, bdpName, user)) {
             logger.error("Project already in database: " + bdpId);
-            return Optional.empty();
+            return new ProjectImportResult(ProjectImportError.PROJECT_ALREADY_EXISTS);
         }
 
         Set<ReleaseRelation> releaseRelations = createReleaseRelations(projectBdp, user);
@@ -179,28 +181,33 @@ public class ThriftUploader {
         projectSW360.setReleaseIdToUsage(releaseRelations.stream()
                 .collect(Collectors.toMap(ReleaseRelation::getReleaseId, ReleaseRelation::getProjectReleaseRelationship)));
 
-        return Optional.ofNullable(thriftExchange.addProject(projectSW360, user));
+        String project = thriftExchange.addProject(projectSW360, user);
+        if(isNullOrEmpty(project)) {
+            return new ProjectImportResult(ProjectImportError.OTHER);
+        } else {
+            return new ProjectImportResult(project);
+        }
     }
 
     public ImportStatus importBdpProjects(Collection<String> bdpProjectIds, User user) {
-        List<String> failedIds = new ArrayList<>();
         List<String> successfulIds = new ArrayList<>();
+        Map<String, String> failedIds = new HashMap<>();
         ImportStatus bdpImportStatus = new ImportStatus().setRequestStatus(RequestStatus.SUCCESS);
 
         for (String bdpId : bdpProjectIds) {
-            Optional<String> projectId = Optional.empty();
+            ProjectImportResult projectImportResult;
             try{
-                projectId = createProject(bdpId, user);
+                projectImportResult = createProject(bdpId, user);
             } catch (TException e){
                 logger.error("Error when creating the project", e);
                 bdpImportStatus.setRequestStatus(RequestStatus.FAILURE);
                 return bdpImportStatus;
             }
-            if (!projectId.isPresent()) {
-                logger.error("Could not import project with bdpId: " + bdpId);
-                failedIds.add(bdpId);
-            } else {
+            if (projectImportResult.isSuccess()) {
                 successfulIds.add(bdpId);
+            } else {
+                logger.error("Could not import project with bdpId: " + bdpId);
+                failedIds.put(bdpId, projectImportResult.getError().getText());
             }
         }
         return bdpImportStatus

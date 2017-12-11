@@ -17,9 +17,9 @@ import com.bosch.osmi.sw360.bdp.entitytranslation.BdpProjectInfoToSw360ProjectTr
 import com.bosch.osmi.sw360.bdp.entitytranslation.TranslationConstants;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
-import org.eclipse.sw360.datahandler.thrift.bdpimport.BdpImportService;
-import org.eclipse.sw360.datahandler.thrift.bdpimport.RemoteCredentials;
 import org.eclipse.sw360.datahandler.thrift.importstatus.ImportStatus;
+import org.eclipse.sw360.datahandler.thrift.projectimport.ProjectImportService;
+import org.eclipse.sw360.datahandler.thrift.projectimport.RemoteCredentials;
 import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import org.eclipse.sw360.datahandler.thrift.users.User;
 
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * @author maximilian.huber@tngtech.com
  * @author andreas.reichel@tngtech.com
  */
-public class BdpImportHandler implements BdpImportService.Iface {
+public class BdpImportHandler implements ProjectImportService.Iface {
 
     private static final Logger log = Logger.getLogger(BdpImportHandler.class);
 
