@@ -11,6 +11,7 @@ package com.bosch.osmi.sw360.bdp.datasink.thrift;
 
 import com.bosch.osmi.bdp.access.api.model.License;
 import com.bosch.osmi.bdp.access.api.model.ProjectInfo;
+import com.bosch.osmi.sw360.bdp.datasink.thrift.helper.ProjectImportError;
 import com.bosch.osmi.sw360.bdp.datasource.BdpApiAccessWrapper;
 import org.apache.thrift.TException;
 import org.eclipse.sw360.datahandler.thrift.projects.Project;
@@ -60,7 +61,7 @@ public class ThriftUploaderTest {
     @Test
     public void testCreateProjectIdHandlesFailureTalkingToBdp() throws TException {
         when(bdp.getProjectInfo(anyString())).thenReturn(null);
-        assertThat(thriftUploader.createProject("c_bdp-api-access_8104", user), is(Optional.empty()));
+        assertThat(thriftUploader.createProject("c_bdp-api-access_8104", user).getError(), is(ProjectImportError.PROJECT_NOT_FOUND));
     }
 
     @Test
@@ -84,7 +85,7 @@ public class ThriftUploaderTest {
 
         when(bdp.getProjectInfo(anyString())).thenReturn(bdpProject);
         when(exchange.doesProjectAlreadyExists(anyString(), anyString(), any(User.class))).thenReturn(true);
-        assertThat(thriftUploader.createProject("asasdf", user), is(Optional.empty()));
+        assertThat(thriftUploader.createProject("asasdf", user).getError(), is(ProjectImportError.PROJECT_ALREADY_EXISTS));
         verify(exchange, never()).addProject(any(Project.class), any(User.class));
     }
 
