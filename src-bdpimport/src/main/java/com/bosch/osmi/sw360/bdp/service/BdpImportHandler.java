@@ -1,5 +1,6 @@
 /*
  * Copyright (c) Bosch Software Innovations GmbH 2015.
+ * With contribution from Verifa Oy, 2018.
  * Part of the SW360 Portal Project.
  *
  * All rights reserved. This program and the accompanying materials
@@ -20,6 +21,7 @@ import org.apache.thrift.TException;
 import org.eclipse.sw360.datahandler.thrift.importstatus.ImportStatus;
 import org.eclipse.sw360.datahandler.thrift.projectimport.ProjectImportService;
 import org.eclipse.sw360.datahandler.thrift.projectimport.RemoteCredentials;
+import org.eclipse.sw360.datahandler.thrift.projectimport.TokenCredentials;
 import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import org.eclipse.sw360.datahandler.thrift.users.User;
 
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
  *
  * @author maximilian.huber@tngtech.com
  * @author andreas.reichel@tngtech.com
+ * @author ksoranko@verifa.io
  */
 public class BdpImportHandler implements ProjectImportService.Iface {
 
@@ -84,4 +87,10 @@ public class BdpImportHandler implements ProjectImportService.Iface {
     public String getIdName(){
         return TranslationConstants.BDP_ID;
     }
+
+    @Override
+    public ImportStatus importData(List<String> list, User user, TokenCredentials tokenCredentials) throws TException {
+        return null;
+    }
+    
 }
