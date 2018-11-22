@@ -14,12 +14,12 @@
     <parent>
         <artifactId>bdp.access.proxy</artifactId>
         <groupId>com.bosch.osmi</groupId>
-        <version>3.3.0-SNAPSHOT</version>
+        <version>3.3.0-M1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>bdp-access-api-capture</artifactId>
-    <version>3.3.0-SNAPSHOT</version>
+    <version>3.3.0-M1</version>
 
     <build>
         <plugins>
@@ -47,17 +47,17 @@
         <dependency>
             <groupId>com.bosch.osmi</groupId>
             <artifactId>bdp.access.api</artifactId>
-            <version>3.3.0-SNAPSHOT</version>
+            <version>3.3.0-M1</version>
         </dependency>
         <dependency>
             <groupId>com.bosch.osmi</groupId>
             <artifactId>bdp.access.impl</artifactId>
-            <version>3.3.0-SNAPSHOT</version>
+            <version>3.3.0-M1</version>
         </dependency>
         <dependency>
             <groupId>com.bosch.osmi</groupId>
             <artifactId>bdp-access-log</artifactId>
-            <version>3.3.0-SNAPSHOT</version>
+            <version>3.3.0-M1</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

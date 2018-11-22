@@ -20,6 +20,7 @@ import org.apache.thrift.TException;
 import org.eclipse.sw360.datahandler.thrift.importstatus.ImportStatus;
 import org.eclipse.sw360.datahandler.thrift.projectimport.ProjectImportService;
 import org.eclipse.sw360.datahandler.thrift.projectimport.RemoteCredentials;
+import org.eclipse.sw360.datahandler.thrift.projectimport.TokenCredentials;
 import org.eclipse.sw360.datahandler.thrift.projects.Project;
 import org.eclipse.sw360.datahandler.thrift.users.User;
 
@@ -83,5 +84,10 @@ public class BdpImportHandler implements ProjectImportService.Iface {
     @Override
     public String getIdName(){
         return TranslationConstants.BDP_ID;
+    }
+
+    @Override
+    public ImportStatus importData(List<String> list, User user, TokenCredentials tokenCredentials) throws TException {
+        throw new UnsupportedOperationException("The BdpImport does not support TokenCredentials");
     }
 }
