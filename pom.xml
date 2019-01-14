@@ -12,6 +12,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <scm>
+        <connection>scm:git:https://github.com/sw360/sw360bdpImportService</connection>
+    </scm>
+
     <properties>
         <java.version>1.8</java.version>
         <liferay.version>6.2.1</liferay.version>
@@ -246,6 +250,13 @@
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.9.4</version>
+                <configuration>
+                    <tag>${project.artifactId}-${project.version}</tag>
+                </configuration>
             </plugin>
         </plugins>
     </build>
