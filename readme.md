@@ -1,3 +1,5 @@
+This repository is not maintained anymore, archived and only available for referential purposes. Please do not use this code as is and be aware that it might contain issues, which are not looked after anymore. 
+
 ### How to Add a New Portlet to Liferay
 
 On the wiki page [Deploy Liferay](https://github.com/sw360/sw360portal/wiki/Deploy-Liferay), it is described how to deploy the lar-files to Liferay. Nevertheless, the administrator 
